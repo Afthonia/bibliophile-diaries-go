@@ -1,0 +1,14 @@
+version: "2"
+sql:
+- schema: "db/migration"
+  queries: "db/query"
+  engine: "postgresql"
+  strict_order_by: false
+  gen:
+    go: 
+      package: "db"
+      out: "db/sqlc"
+      emit_json_tags: true
+      emit_interface: false
+  database:
+    uri: "postgresql://ayse:123456@localhost:5432/bibliophile?sslmode=disable"
