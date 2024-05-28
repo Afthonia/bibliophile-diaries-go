@@ -1,6 +1,9 @@
 package handler
 
 import (
+	db "bibliophile-diaries/db/sqlc"
+	"bibliophile-diaries/models"
+	"bibliophile-diaries/status"
 	"database/sql"
 	"fmt"
 	"log"
@@ -8,9 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	db "bibliophile-diaries/db/sqlc"
-	"bibliophile-diaries/models"
-	"bibliophile-diaries/status"
 
 	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
@@ -189,7 +189,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 func GetDashboard(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	store := ctx.Value(StoreKey).(*db.Store)
-	userID := ctx.Value(UserIDKey).(int64)
+	userID := ctx.Value(IDKey).(int)
 	log.Println(userID)
 
 	dashboard, err := store.GetDashboard(ctx, sql.NullInt64{Int64: int64(userID), Valid: userID != 0})

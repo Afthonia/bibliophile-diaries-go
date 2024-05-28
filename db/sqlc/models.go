@@ -79,6 +79,8 @@ type Permgroup struct {
 
 type Post struct {
 	ID        int64          `json:"id"`
+	BookTitle string         `json:"book_title"`
+	Vote      int16          `json:"vote"`
 	UserID    int64          `json:"user_id"`
 	Title     sql.NullString `json:"title"`
 	Content   string         `json:"content"`

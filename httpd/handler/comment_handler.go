@@ -152,22 +152,23 @@ func ShowPostComments(w http.ResponseWriter, r *http.Request) {
 func GetUserComments(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
-	userID := ctx.Value(UserIDKey).(int64)
+	userID := ctx.Value(IDKey).(int)
 	store := ctx.Value(StoreKey).(*db.Store)
 
-	userComments, err := store.ListUserComments(ctx, userID)
+	userComments, err := store.ListUserComments(ctx, int64(userID))
 	if err != nil {
 		render.Render(w, r, status.ErrNotFoundOrInternal(err))
 		return
 	}
 
 	renderList := utils.Map(userComments, func(e db.ListUserCommentsRow) render.Renderer {
-		return &db.ListPostCommentsRow{
+		return &db.ListUserCommentsRow{
 			ID:          e.ID,
 			Commenter:   e.Commenter,
 			CommenterID: e.CommenterID,
 			Content:     e.Content,
 			CreatedAt:   e.CreatedAt,
+			PostID:      e.PostID,
 		}
 	})
 

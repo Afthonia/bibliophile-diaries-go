@@ -16,7 +16,12 @@ import (
 
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 	postBind := &models.PostBind{}
-	if err := postBind.FormBind(r); err != nil {
+	// if err := postBind.FormBind(r); err != nil {
+	// 	render.Render(w, r, status.ErrBadRequest(err))
+	// 	return
+	// }
+
+	if err := render.Bind(r, postBind); err != nil {
 		render.Render(w, r, status.ErrBadRequest(err))
 		return
 	}
@@ -26,9 +31,11 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	userID := ctx.Value(UserIDKey).(int64)
 
 	createdPost, err := store.CreatePost(ctx, db.CreatePostParams{
-		UserID:  userID,
-		Title:   sql.NullString{String: postBind.Title, Valid: postBind.Title != ""},
-		Content: postBind.Content,
+		UserID:    userID,
+		Title:     sql.NullString{String: postBind.Title, Valid: postBind.Title != ""},
+		Content:   postBind.Content,
+		BookTitle: postBind.BookTitle,
+		Vote:      int16(postBind.Vote),
 	})
 
 	if err != nil {
@@ -60,10 +67,12 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	userID := ctx.Value(UserIDKey).(int64)
 
 	updatedPost, err := store.UpdatePost(ctx, db.UpdatePostParams{
-		UserID:  userID,
-		ID:      int64(postID),
-		Title:   sql.NullString{String: postBind.Title, Valid: postBind.Title != ""},
-		Content: postBind.Content,
+		UserID:    userID,
+		ID:        int64(postID),
+		Title:     sql.NullString{String: postBind.Title, Valid: postBind.Title != ""},
+		Content:   postBind.Content,
+		BookTitle: postBind.BookTitle,
+		Vote:      int16(postBind.Vote),
 	})
 	if err != nil {
 		render.Render(w, r, status.ErrNotFoundOrInternal(err))
@@ -104,6 +113,8 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 			Title:     e.Title,
 			Content:   e.Content,
 			CreatedAt: e.CreatedAt,
+			BookTitle: e.BookTitle,
+			Vote:      e.Vote,
 		}
 	})
 
@@ -137,6 +148,8 @@ func GetLikedPosts(w http.ResponseWriter, r *http.Request) {
 			Title:     e.Title,
 			Content:   e.Content,
 			CreatedAt: e.CreatedAt,
+			BookTitle: e.BookTitle,
+			Vote:      e.Vote,
 		}
 	})
 
@@ -201,4 +214,33 @@ func TogglePostLike(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(strconv.FormatBool(isLiked)))
+}
+
+func GetPost(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	postID := ctx.Value(IDKey).(int)
+	store := ctx.Value(StoreKey).(*db.Store)
+
+	post, err := store.GetPost(ctx, int64(postID))
+	if err != nil {
+		render.Render(w, r, status.ErrNotFoundOrInternal(err))
+		return
+	}
+
+	postRender := &db.GetPostRow{
+		Title:     post.Title,
+		ID:        post.ID,
+		AuthorID:  post.AuthorID,
+		Author:    post.Author,
+		Content:   post.Content,
+		CreatedAt: post.CreatedAt,
+		IsLiked:   post.IsLiked,
+		LikeCount: post.LikeCount,
+		BookTitle: post.BookTitle,
+		Vote:      post.Vote,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	render.Render(w, r, postRender)
 }

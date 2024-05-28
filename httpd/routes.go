@@ -7,11 +7,17 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/jwtauth"
 )
 
 func createAPIRoutes(store *db.Store, tokenAuth *jwtauth.JWTAuth) *chi.Mux {
 	r := chi.NewMux()
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	}))
 
 	r.Use(handler.ProvideStore(store), handler.ProvideJWTAuth(tokenAuth), jwtauth.Verifier(tokenAuth))
 
@@ -33,12 +39,13 @@ func createAPIRoutes(store *db.Store, tokenAuth *jwtauth.JWTAuth) *chi.Mux {
 				r.Use(handler.Authenticate)
 				r.With(handler.IDMiddleware).Delete("/", handler.DeleteUser)
 				r.With(handler.TokenMiddleware).Get("/profile", handler.GetUser)
-				r.With(handler.TokenMiddleware).Get("/dashboard", handler.GetDashboard)
+				r.With(handler.IDMiddleware).Get("/dashboard", handler.GetDashboard)
 			})
 		})
 
 		r.Route("/post", func(r chi.Router) {
 			r.With(handler.AuthenticatePass).Get("/list", handler.GetPosts)
+			r.With(handler.IDMiddleware).With(handler.AuthenticatePass).Get("/", handler.GetPost)
 			r.Group(func(r chi.Router) {
 				r.Use(handler.Authenticate)
 				r.Post("/", handler.CreatePost)
@@ -54,10 +61,11 @@ func createAPIRoutes(store *db.Store, tokenAuth *jwtauth.JWTAuth) *chi.Mux {
 			r.With(handler.IDMiddleware).Get("/", handler.ShowPostComments)
 			//r.With(handler.IDMiddleware).Get("/", handler.GetComment)
 
+			r.With(handler.IDMiddleware).Get("/user", handler.GetUserComments)
+
 			r.Group(func(r chi.Router) {
 				r.Use(handler.Authenticate)
 				r.Post("/", handler.CreateComment)
-				r.Get("/user", handler.GetUserComments)
 
 				r.Group(func(r chi.Router) {
 					r.Use(handler.IDMiddleware)

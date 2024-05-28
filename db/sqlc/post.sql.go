@@ -15,43 +15,55 @@ const createPost = `-- name: CreatePost :one
 INSERT INTO posts (
     user_id,
     title,
-    content
+    content,
+    book_title,
+    vote
 ) VALUES (
-    $1, $2, $3
-) RETURNING id, 0::bigint as author_id, '' as author, COALESCE(title, '')::text as title, content, false as is_liked, 0 as like_count, created_at, '' as image_url
+    $1, $2, $3, $4, $5
+) RETURNING id, 0::bigint as author_id, '' as author, book_title, vote, COALESCE(title, '')::text as title, content, false as is_liked, 0 as like_count, created_at
 `
 
 type CreatePostParams struct {
-	UserID  int64          `json:"user_id"`
-	Title   sql.NullString `json:"title"`
-	Content string         `json:"content"`
+	UserID    int64          `json:"user_id"`
+	Title     sql.NullString `json:"title"`
+	Content   string         `json:"content"`
+	BookTitle string         `json:"book_title"`
+	Vote      int16          `json:"vote"`
 }
 
 type CreatePostRow struct {
 	ID        int64     `json:"id"`
 	AuthorID  int64     `json:"author_id"`
 	Author    string    `json:"author"`
+	BookTitle string    `json:"book_title"`
+	Vote      int16     `json:"vote"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	IsLiked   bool      `json:"is_liked"`
 	LikeCount int32     `json:"like_count"`
 	CreatedAt time.Time `json:"created_at"`
-	ImageUrl  string    `json:"image_url"`
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (CreatePostRow, error) {
-	row := q.db.QueryRowContext(ctx, createPost, arg.UserID, arg.Title, arg.Content)
+	row := q.db.QueryRowContext(ctx, createPost,
+		arg.UserID,
+		arg.Title,
+		arg.Content,
+		arg.BookTitle,
+		arg.Vote,
+	)
 	var i CreatePostRow
 	err := row.Scan(
 		&i.ID,
 		&i.AuthorID,
 		&i.Author,
+		&i.BookTitle,
+		&i.Vote,
 		&i.Title,
 		&i.Content,
 		&i.IsLiked,
 		&i.LikeCount,
 		&i.CreatedAt,
-		&i.ImageUrl,
 	)
 	return i, err
 }
@@ -80,7 +92,7 @@ func (q *Queries) DeletePost(ctx context.Context, arg DeletePostParams) (int64, 
 }
 
 const getLikedPosts = `-- name: GetLikedPosts :many
-SELECT p.id, u.id as author_id, u.name as author, COALESCE(p.title, '')::text as title, p.content, COALESCE(pl.is_liked, false)::bool as is_liked, COALESCE(pl2.like_count, 0)::int as like_count, p.created_at, '' as image_url FROM posts p
+SELECT p.id, u.id as author_id, u.name as author, p.book_title, p.vote, COALESCE(p.title, '')::text as title, p.content, COALESCE(pl.is_liked, false)::bool as is_liked, COALESCE(pl2.like_count, 0)::int as like_count, p.created_at FROM posts p
 INNER JOIN users u ON u.id = p.user_id
 INNER JOIN post_likes pl ON pl.post_id = p.id AND pl.user_id = $1 and pl.is_liked = true
 LEFT JOIN (SELECT post_id, COUNT(*) as like_count FROM post_likes WHERE is_liked = true GROUP BY post_id) pl2 ON pl2.post_id = p.id
@@ -91,12 +103,13 @@ type GetLikedPostsRow struct {
 	ID        int64     `json:"id"`
 	AuthorID  int64     `json:"author_id"`
 	Author    string    `json:"author"`
+	BookTitle string    `json:"book_title"`
+	Vote      int16     `json:"vote"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	IsLiked   bool      `json:"is_liked"`
 	LikeCount int32     `json:"like_count"`
 	CreatedAt time.Time `json:"created_at"`
-	ImageUrl  string    `json:"image_url"`
 }
 
 func (q *Queries) GetLikedPosts(ctx context.Context, userID int64) ([]GetLikedPostsRow, error) {
@@ -112,12 +125,13 @@ func (q *Queries) GetLikedPosts(ctx context.Context, userID int64) ([]GetLikedPo
 			&i.ID,
 			&i.AuthorID,
 			&i.Author,
+			&i.BookTitle,
+			&i.Vote,
 			&i.Title,
 			&i.Content,
 			&i.IsLiked,
 			&i.LikeCount,
 			&i.CreatedAt,
-			&i.ImageUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -133,8 +147,10 @@ func (q *Queries) GetLikedPosts(ctx context.Context, userID int64) ([]GetLikedPo
 }
 
 const getPost = `-- name: GetPost :one
-SELECT p.id, u.id as author_id, u.name as author, COALESCE(p.title, '')::text as title, p.content, p.created_at, '' as image_url  FROM posts p
+SELECT p.id, u.id as author_id, u.name as author, p.book_title, p.vote, COALESCE(p.title, '')::text as title, p.content, COALESCE(pl.is_liked, false)::bool as is_liked, COALESCE(pl2.like_count, 0)::int as like_count, p.created_at FROM posts p
 INNER JOIN users u ON u.id = p.user_id
+LEFT JOIN post_likes pl ON pl.post_id = p.id AND pl.user_id = $1
+LEFT JOIN (SELECT post_id, COUNT(*) as like_count FROM post_likes WHERE is_liked = true GROUP BY post_id) pl2 ON pl2.post_id = p.id
 WHERE p.id = $1 LIMIT 1
 `
 
@@ -142,30 +158,36 @@ type GetPostRow struct {
 	ID        int64     `json:"id"`
 	AuthorID  int64     `json:"author_id"`
 	Author    string    `json:"author"`
+	BookTitle string    `json:"book_title"`
+	Vote      int16     `json:"vote"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
+	IsLiked   bool      `json:"is_liked"`
+	LikeCount int32     `json:"like_count"`
 	CreatedAt time.Time `json:"created_at"`
-	ImageUrl  string    `json:"image_url"`
 }
 
-func (q *Queries) GetPost(ctx context.Context, id int64) (GetPostRow, error) {
-	row := q.db.QueryRowContext(ctx, getPost, id)
+func (q *Queries) GetPost(ctx context.Context, userID int64) (GetPostRow, error) {
+	row := q.db.QueryRowContext(ctx, getPost, userID)
 	var i GetPostRow
 	err := row.Scan(
 		&i.ID,
 		&i.AuthorID,
 		&i.Author,
+		&i.BookTitle,
+		&i.Vote,
 		&i.Title,
 		&i.Content,
+		&i.IsLiked,
+		&i.LikeCount,
 		&i.CreatedAt,
-		&i.ImageUrl,
 	)
 	return i, err
 }
 
 const listPosts = `-- name: ListPosts :many
 
-SELECT p.id, u.id as author_id, u.name as author, COALESCE(p.title, '')::text as title, p.content, COALESCE(pl.is_liked, false)::bool as is_liked, COALESCE(pl2.like_count, 0)::int as like_count, p.created_at, '' as image_url FROM posts p
+SELECT p.id, u.id as author_id, u.name as author, p.book_title, p.vote, COALESCE(p.title, '')::text as title, p.content, COALESCE(pl.is_liked, false)::bool as is_liked, COALESCE(pl2.like_count, 0)::int as like_count, p.created_at FROM posts p
 INNER JOIN users u ON u.id = p.user_id
 LEFT JOIN post_likes pl ON pl.post_id = p.id AND pl.user_id = $1
 LEFT JOIN (SELECT post_id, COUNT(*) as like_count FROM post_likes WHERE is_liked = true GROUP BY post_id) pl2 ON pl2.post_id = p.id
@@ -176,12 +198,13 @@ type ListPostsRow struct {
 	ID        int64     `json:"id"`
 	AuthorID  int64     `json:"author_id"`
 	Author    string    `json:"author"`
+	BookTitle string    `json:"book_title"`
+	Vote      int16     `json:"vote"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	IsLiked   bool      `json:"is_liked"`
 	LikeCount int32     `json:"like_count"`
 	CreatedAt time.Time `json:"created_at"`
-	ImageUrl  string    `json:"image_url"`
 }
 
 // --name: GetUserPosts :many
@@ -201,12 +224,13 @@ func (q *Queries) ListPosts(ctx context.Context, userID int64) ([]ListPostsRow, 
 			&i.ID,
 			&i.AuthorID,
 			&i.Author,
+			&i.BookTitle,
+			&i.Vote,
 			&i.Title,
 			&i.Content,
 			&i.IsLiked,
 			&i.LikeCount,
 			&i.CreatedAt,
-			&i.ImageUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -224,28 +248,33 @@ func (q *Queries) ListPosts(ctx context.Context, userID int64) ([]ListPostsRow, 
 const updatePost = `-- name: UpdatePost :one
 UPDATE posts
   set title = $3,
-  content = $4
+  content = $4,
+  book_title = $5,
+  vote = $6
 WHERE user_id = $1 and id = $2
-RETURNING id, 0::bigint as author_id, '' as author, COALESCE(title, '')::text as title, content, false as is_liked, 0 as like_count, created_at, '' as image_url
+RETURNING id, 0::bigint as author_id, '' as author, book_title, vote, COALESCE(title, '')::text as title, content, false as is_liked, 0 as like_count, created_at
 `
 
 type UpdatePostParams struct {
-	UserID  int64          `json:"user_id"`
-	ID      int64          `json:"id"`
-	Title   sql.NullString `json:"title"`
-	Content string         `json:"content"`
+	UserID    int64          `json:"user_id"`
+	ID        int64          `json:"id"`
+	Title     sql.NullString `json:"title"`
+	Content   string         `json:"content"`
+	BookTitle string         `json:"book_title"`
+	Vote      int16          `json:"vote"`
 }
 
 type UpdatePostRow struct {
 	ID        int64     `json:"id"`
 	AuthorID  int64     `json:"author_id"`
 	Author    string    `json:"author"`
+	BookTitle string    `json:"book_title"`
+	Vote      int16     `json:"vote"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	IsLiked   bool      `json:"is_liked"`
 	LikeCount int32     `json:"like_count"`
 	CreatedAt time.Time `json:"created_at"`
-	ImageUrl  string    `json:"image_url"`
 }
 
 func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (UpdatePostRow, error) {
@@ -254,18 +283,21 @@ func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (UpdateP
 		arg.ID,
 		arg.Title,
 		arg.Content,
+		arg.BookTitle,
+		arg.Vote,
 	)
 	var i UpdatePostRow
 	err := row.Scan(
 		&i.ID,
 		&i.AuthorID,
 		&i.Author,
+		&i.BookTitle,
+		&i.Vote,
 		&i.Title,
 		&i.Content,
 		&i.IsLiked,
 		&i.LikeCount,
 		&i.CreatedAt,
-		&i.ImageUrl,
 	)
 	return i, err
 }

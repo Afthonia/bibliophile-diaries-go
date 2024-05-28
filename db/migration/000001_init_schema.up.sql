@@ -18,6 +18,8 @@ CREATE TABLE "users" (
 
 CREATE TABLE "posts" (
   "id" bigserial PRIMARY KEY,
+  "book_title" text NOT NULL,
+  "vote" smallint NOT NULL,
   "user_id" bigint NOT NULL,
   "title" text,
   "content" text NOT NULL,
