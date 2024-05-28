@@ -43,7 +43,7 @@ func TestCreateCommentAuthorized(t *testing.T) {
 	client := &http.Client{}
 
 	// Create a request body for the test
-	requestBody := []byte(`{"post_id": 14, "content": "Test Content"}`)
+	requestBody := []byte(`{"post_id": 1, "content": "Test Content"}`)
 
 	// Create a request with the request body
 	req, err := http.NewRequest("POST", baseURLComment, bytes.NewBuffer(requestBody))
@@ -51,7 +51,7 @@ func TestCreateCommentAuthorized(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjUxMjYwLCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.wNcd0GLOf9jVizNrlgmb9RZjZ4PY8Lzi2ohLjy9m4Rg"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjYyNDA5LCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.LYbqO5njEFJS9-ZU6p_HH9D_9QtlvdoVy_TIHDZ92F0"
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
@@ -71,15 +71,14 @@ func TestDeleteCommentAuthorizedValid(t *testing.T) {
 	client := &http.Client{}
 
 	// Create a request with the request body
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s?id=7", baseURLComment), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s?id=3", baseURLComment), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjUxMjYwLCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.wNcd0GLOf9jVizNrlgmb9RZjZ4PY8Lzi2ohLjy9m4Rg"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjYyNDA5LCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.LYbqO5njEFJS9-ZU6p_HH9D_9QtlvdoVy_TIHDZ92F0"
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -100,10 +99,9 @@ func TestDeleteCommentAuthorizedInvalid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjUxMjYwLCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.wNcd0GLOf9jVizNrlgmb9RZjZ4PY8Lzi2ohLjy9m4Rg"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjYyNDA5LCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.LYbqO5njEFJS9-ZU6p_HH9D_9QtlvdoVy_TIHDZ92F0"
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
-
 
 	res, err := client.Do(req)
 	if err != nil {

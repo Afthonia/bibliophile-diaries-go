@@ -57,7 +57,7 @@ func (ns NullPermType) Value() (driver.Value, error) {
 }
 
 type Bookshelf struct {
-	BookID      int64     `json:"book_id"`
+	BookID      string    `json:"book_id"`
 	UserID      int64     `json:"user_id"`
 	InBookshelf bool      `json:"in_bookshelf"`
 	CreatedAt   time.Time `json:"created_at"`

@@ -56,6 +56,11 @@ func createAPIRoutes(store *db.Store, tokenAuth *jwtauth.JWTAuth) *chi.Mux {
 			})
 		})
 
+		r.Route("/bookshelf", func(r chi.Router) {
+			r.Use(handler.Authenticate)
+			r.With(handler.IDMiddlewareStr).Patch("/manage", handler.ToggleBook)
+		})
+
 		r.Route("/comment", func(r chi.Router) {
 			r.With(handler.IDMiddleware).Get("/post/list", handler.GetPostComments)
 			r.With(handler.IDMiddleware).Get("/", handler.ShowPostComments)

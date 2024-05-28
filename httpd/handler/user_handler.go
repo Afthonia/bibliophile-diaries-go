@@ -200,3 +200,23 @@ func GetDashboard(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.Render(w, r, models.DashboardPayload(dashboard))
 }
+
+func ToggleBook(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	bookID := ctx.Value(IDKey).(string)
+	store := ctx.Value(StoreKey).(*db.Store)
+	userID := ctx.Value(UserIDKey).(int64)
+
+	inBookshelf, err := store.ToggleBook(ctx, db.ToggleBookParams{
+		BookID: bookID,
+		UserID: userID,
+	})
+	if err != nil {
+		render.Render(w, r, status.ErrNotFoundOrInternal(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(strconv.FormatBool(inBookshelf)))
+}

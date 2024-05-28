@@ -51,7 +51,7 @@ func TestCreatePostAuthorized(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjUxMjYwLCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.wNcd0GLOf9jVizNrlgmb9RZjZ4PY8Lzi2ohLjy9m4Rg"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjYyNDA5LCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.LYbqO5njEFJS9-ZU6p_HH9D_9QtlvdoVy_TIHDZ92F0"
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
@@ -74,12 +74,12 @@ func TestToggleLikeAuthorized(t *testing.T) {
 	requestBody := []byte(`{"title": "Test Title", "content": "Test Content", "bookTitle": "Test Book", "vote": 6}`)
 
 	// Create a request with the request body
-	req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/like?id=14", baseURLPost), bytes.NewBuffer(requestBody))
+	req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/like?id=1", baseURLPost), bytes.NewBuffer(requestBody))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjUxMjYwLCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.wNcd0GLOf9jVizNrlgmb9RZjZ4PY8Lzi2ohLjy9m4Rg"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjYyNDA5LCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.LYbqO5njEFJS9-ZU6p_HH9D_9QtlvdoVy_TIHDZ92F0"
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
@@ -99,12 +99,12 @@ func TestDeletePostAuthorizedValid(t *testing.T) {
 	client := &http.Client{}
 
 	// Create a request with the request body
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s?id=13", baseURLPost), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s?id=2", baseURLPost), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjUxMjYwLCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.wNcd0GLOf9jVizNrlgmb9RZjZ4PY8Lzi2ohLjy9m4Rg"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjYyNDA5LCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.LYbqO5njEFJS9-ZU6p_HH9D_9QtlvdoVy_TIHDZ92F0"
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
@@ -128,7 +128,7 @@ func TestDeletePostAuthorizedInvalid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjUxMjYwLCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.wNcd0GLOf9jVizNrlgmb9RZjZ4PY8Lzi2ohLjy9m4Rg"
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFpc2VzZW43NjVAZ21haWwuY29tIiwiZXhwIjoxNzI0NjYyNDA5LCJuYW1lIjoiYXlzZSIsInVzZXJfaWQiOiIxIn0.LYbqO5njEFJS9-ZU6p_HH9D_9QtlvdoVy_TIHDZ92F0"
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 

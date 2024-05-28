@@ -39,6 +39,16 @@ func IDMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func IDMiddlewareStr(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		blogIDstr := r.URL.Query().Get("id")
+
+		ctx := r.Context()
+		newCtx := context.WithValue(ctx, IDKey, blogIDstr)
+		next.ServeHTTP(w, r.WithContext(newCtx))
+	})
+}
+
 func ProvideStore(store *db.Store) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

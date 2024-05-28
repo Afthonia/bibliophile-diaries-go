@@ -27,7 +27,7 @@ CREATE TABLE "posts" (
 );
 
 CREATE TABLE "bookshelf" (
-  "book_id" bigint NOT NULL,
+  "book_id" text NOT NULL,
   "user_id" bigint NOT NULL,
   "in_bookshelf" bool NOT NULL DEFAULT true,
   "created_at" timestamptz NOT NULL DEFAULT (now())
