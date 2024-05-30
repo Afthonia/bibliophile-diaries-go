@@ -104,6 +104,7 @@ func GetPostComments(w http.ResponseWriter, r *http.Request) {
 			Commenter:   e.Commenter,
 			Content:     e.Content,
 			CreatedAt:   e.CreatedAt,
+			PostID:      e.PostID,
 		}
 	})
 

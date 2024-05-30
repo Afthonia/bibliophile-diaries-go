@@ -25,7 +25,7 @@ func TestGetPostComments(t *testing.T) {
 
 func TestCreateCommentUnauthorized(t *testing.T) {
 	// Create a request body for the test
-	requestBody := []byte(`{"post_id": 14, "content": "Test Content"}`)
+	requestBody := []byte(`{"post_id": 1, "content": "Test Content"}`)
 
 	// Create a request with the request body
 	req, err := http.Post(baseURLComment, "application/json", bytes.NewBuffer(requestBody))
@@ -71,7 +71,7 @@ func TestDeleteCommentAuthorizedValid(t *testing.T) {
 	client := &http.Client{}
 
 	// Create a request with the request body
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s?id=3", baseURLComment), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s?id=4", baseURLComment), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

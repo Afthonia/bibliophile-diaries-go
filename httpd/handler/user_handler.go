@@ -4,6 +4,7 @@ import (
 	db "bibliophile-diaries/db/sqlc"
 	"bibliophile-diaries/models"
 	"bibliophile-diaries/status"
+	"bibliophile-diaries/utils"
 	"database/sql"
 	"fmt"
 	"log"
@@ -186,6 +187,27 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	render.Render(w, r, status.DelSuccess())
 }
 
+func UpdateBio(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+	store := ctx.Value(StoreKey).(*db.Store)
+	userID := ctx.Value(UserIDKey).(int64)
+	bio := ctx.Value(IDKey).(string)
+
+	updatedBio, err := store.UpdateBio(ctx, db.UpdateBioParams{
+		ID:  userID,
+		Bio: sql.NullString{String: bio, Valid: bio != ""},
+	})
+
+	if err != nil {
+		render.Render(w, r, status.ErrNotFoundOrInternal(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(strconv.FormatBool(updatedBio.Valid)))
+}
+
 func GetDashboard(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	store := ctx.Value(StoreKey).(*db.Store)
@@ -219,4 +241,31 @@ func ToggleBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(strconv.FormatBool(inBookshelf)))
+}
+
+func GetBookshelf(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	store := ctx.Value(StoreKey).(*db.Store)
+	userID := ctx.Value(IDKey).(int)
+	log.Println(userID)
+
+	books, err := store.ListBookshelf(ctx, int64(userID))
+	if err != nil {
+		render.Render(w, r, status.ErrInternal(err))
+		return
+	}
+
+	bookRows := []db.ListBookshelfRow(books)
+
+	renderList := utils.Map(bookRows, func(e db.ListBookshelfRow) render.Renderer {
+		return &db.ListBookshelfRow{
+			UserID:      e.UserID,
+			BookID:      e.BookID,
+			InBookshelf: e.InBookshelf,
+			CreatedAt:   e.CreatedAt,
+		}
+	})
+
+	render.Status(r, http.StatusOK)
+	render.RenderList(w, r, renderList)
 }

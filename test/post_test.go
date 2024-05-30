@@ -99,7 +99,7 @@ func TestDeletePostAuthorizedValid(t *testing.T) {
 	client := &http.Client{}
 
 	// Create a request with the request body
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s?id=2", baseURLPost), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s?id=4", baseURLPost), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

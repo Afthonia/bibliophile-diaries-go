@@ -26,6 +26,12 @@ ORDER BY id;
 DELETE FROM users
 WHERE id = $1;
 
+-- name: UpdateBio :one
+UPDATE users
+    set bio = $2
+WHERE id = $1
+RETURNING bio;
+
 -- name: GetDashboard :one
 SELECT 
     (SELECT COUNT(*) FROM posts WHERE user_id = $1) AS user_posts,

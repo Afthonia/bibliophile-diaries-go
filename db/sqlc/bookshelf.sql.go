@@ -7,7 +7,49 @@ package db
 
 import (
 	"context"
+	"time"
 )
+
+const listBookshelf = `-- name: ListBookshelf :many
+SELECT user_id, book_id, in_bookshelf, created_at FROM bookshelf
+WHERE user_id = $1
+ORDER BY created_at DESC
+`
+
+type ListBookshelfRow struct {
+	UserID      int64     `json:"user_id"`
+	BookID      string    `json:"book_id"`
+	InBookshelf bool      `json:"in_bookshelf"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+func (q *Queries) ListBookshelf(ctx context.Context, userID int64) ([]ListBookshelfRow, error) {
+	rows, err := q.db.QueryContext(ctx, listBookshelf, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListBookshelfRow
+	for rows.Next() {
+		var i ListBookshelfRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.BookID,
+			&i.InBookshelf,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const toggleBook = `-- name: ToggleBook :one
 INSERT INTO bookshelf (

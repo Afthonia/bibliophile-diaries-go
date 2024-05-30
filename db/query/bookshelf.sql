@@ -8,3 +8,7 @@ INSERT INTO bookshelf (
 in_bookshelf = NOT bookshelf.in_bookshelf
 RETURNING in_bookshelf;
 
+-- name: ListBookshelf :many
+SELECT user_id, book_id, in_bookshelf, created_at FROM bookshelf
+WHERE user_id = $1
+ORDER BY created_at DESC;

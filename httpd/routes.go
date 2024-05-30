@@ -40,12 +40,13 @@ func createAPIRoutes(store *db.Store, tokenAuth *jwtauth.JWTAuth) *chi.Mux {
 				r.With(handler.IDMiddleware).Delete("/", handler.DeleteUser)
 				r.With(handler.TokenMiddleware).Get("/profile", handler.GetUser)
 				r.With(handler.IDMiddleware).Get("/dashboard", handler.GetDashboard)
+				r.With(handler.IDMiddlewareStr).Patch("/bio", handler.UpdateBio)
 			})
 		})
 
 		r.Route("/post", func(r chi.Router) {
 			r.With(handler.AuthenticatePass).Get("/list", handler.GetPosts)
-			r.With(handler.IDMiddleware).With(handler.AuthenticatePass).Get("/", handler.GetPost)
+			r.With(handler.AuthenticatePass).With(handler.IDMiddleware).Get("/one", handler.GetPost)
 			r.Group(func(r chi.Router) {
 				r.Use(handler.Authenticate)
 				r.Post("/", handler.CreatePost)
@@ -59,6 +60,7 @@ func createAPIRoutes(store *db.Store, tokenAuth *jwtauth.JWTAuth) *chi.Mux {
 		r.Route("/bookshelf", func(r chi.Router) {
 			r.Use(handler.Authenticate)
 			r.With(handler.IDMiddlewareStr).Patch("/manage", handler.ToggleBook)
+			r.With(handler.IDMiddleware).Get("/list", handler.GetBookshelf)
 		})
 
 		r.Route("/comment", func(r chi.Router) {

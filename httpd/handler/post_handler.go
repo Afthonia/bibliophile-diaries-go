@@ -6,6 +6,7 @@ import (
 	"bibliophile-diaries/status"
 	"bibliophile-diaries/utils"
 	"database/sql"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -56,7 +57,8 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 func UpdatePost(w http.ResponseWriter, r *http.Request) {
 	postBind := &models.PostBind{}
-	if err := postBind.FormBind(r); err != nil {
+	if err := render.Bind(r, postBind); err != nil {
+		fmt.Println("vlmsdşmbds")
 		render.Render(w, r, status.ErrBadRequest(err))
 		return
 	}
@@ -104,6 +106,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 	postRows := []db.ListPostsRow(posts)
 
 	renderList := utils.Map(postRows, func(e db.ListPostsRow) render.Renderer {
+		//fmt.Println(e.IsLiked)
 		return &db.ListPostsRow{
 			ID:        e.ID,
 			IsLiked:   e.IsLiked,
@@ -227,7 +230,7 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postRender := &db.GetPostRow{
+	postRender := &db.ListPostsRow{
 		Title:     post.Title,
 		ID:        post.ID,
 		AuthorID:  post.AuthorID,

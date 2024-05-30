@@ -158,3 +158,22 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 	}
 	return items, nil
 }
+
+const updateBio = `-- name: UpdateBio :one
+UPDATE users
+    set bio = $2
+WHERE id = $1
+RETURNING bio
+`
+
+type UpdateBioParams struct {
+	ID  int64          `json:"id"`
+	Bio sql.NullString `json:"bio"`
+}
+
+func (q *Queries) UpdateBio(ctx context.Context, arg UpdateBioParams) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, updateBio, arg.ID, arg.Bio)
+	var bio sql.NullString
+	err := row.Scan(&bio)
+	return bio, err
+}
